@@ -11,7 +11,8 @@ permissions:
 
 jobs:
   publish:
-    if: startsWith(github.ref, 'refs/tags/v')
+    # tag pushes publish automatically; manual runs publish whatever main has
+    if: ${{ startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     environment: npm
     steps:
