@@ -8,7 +8,13 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 
 let packed
 try {
-  const out = execFileSync('npm', ['pack', '--dry-run', '--json'], { cwd: root, encoding: 'utf8' })
+  // shell: true because npm is npm.cmd on windows and node refuses to spawn
+  // .cmd files without a shell
+  const out = execFileSync('npm', ['pack', '--dry-run', '--json'], {
+    cwd: root,
+    encoding: 'utf8',
+    shell: true,
+  })
   // npm prints the json array; older versions prefix a tar notice line
   const start = out.indexOf('[')
   packed = JSON.parse(out.slice(start))

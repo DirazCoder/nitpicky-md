@@ -17,8 +17,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        # engines floor is 20; 26 is current
-        node: [20, 22, 24, 26]
+        # the published lib supports node >=20, but the build (tsdown) needs
+        # ^22.18, so tests run on 22+; 26 is current
+        node: [22, 24, 26]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
