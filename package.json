@@ -32,7 +32,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dirazcoder/nitpicky-md.git"
+    "url": "git+https://github.com/DirazCoder/nitpicky-md.git"
   },
   "scripts": {
     "build": "tsdown",
@@ -80,9 +80,9 @@
   },
   "author": "DirazCoder",
   "bugs": {
-    "url": "https://github.com/dirazcoder/nitpicky-md/issues"
+    "url": "https://github.com/DirazCoder/nitpicky-md/issues"
   },
-  "homepage": "https://github.com/dirazcoder/nitpicky-md#readme",
+  "homepage": "https://github.com/DirazCoder/nitpicky-md#readme",
   "allowScripts": {
     "unrs-resolver@1.12.2": true
   }
