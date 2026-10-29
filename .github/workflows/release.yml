@@ -1,0 +1,43 @@
+# release: prepared, never fired (0.1.0 is unreleased).
+#
+# to actually publish, all of these must be true first:
+#   1. the repo lives at github.com/nitpicky-md/nitpicky-md (public -- npm
+#      provenance needs a public origin + OIDC trust configured at
+#      npmjs.com/settings/tokens/automation)
+#   2. an npm access token is stored as the NODE_AUTH_TOKEN secret
+#   3. a tag v0.1.0 exists and CHANGELOG.md has the matching entry
+#
+# the job runs the full gate stack before publishing; a red check blocks it.
+name: release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # npm --provenance (sigstore OIDC)
+
+jobs:
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run check:deps
+      - run: npm run check:pack
+      - run: npm run check:publish
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

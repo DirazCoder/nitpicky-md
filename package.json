@@ -1,0 +1,80 @@
+{
+  "name": "nitpicky-md",
+  "version": "0.1.0",
+  "description": "A markdown parser that tells you when your markdown almost worked.",
+  "keywords": [
+    "markdown",
+    "parser",
+    "commonmark",
+    "gfm",
+    "diagnostics",
+    "lint"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "nitpicky-md": "./dist/cli.mjs",
+    "nitpicky": "./dist/cli.mjs"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nitpicky-md/nitpicky-md.git"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "fmt": "prettier --write .",
+    "fmt:check": "prettier --check .",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:spec": "vitest run tests/spec",
+    "test:types": "vitest run tests/types",
+    "test:examples": "vitest run tests/examples",
+    "fuzz:smoke": "vitest run tests/fuzz",
+    "fuzz": "FUZZ_CASES=100000 vitest run tests/fuzz",
+    "bench": "npm run build --silent && node scripts/run-bench.mjs",
+    "check:deps": "node scripts/check-deps.mjs",
+    "check:pack": "node scripts/check-pack.mjs",
+    "check:publish": "publint && attw --pack --profile esm-only .",
+    "fixtures:fetch": "node scripts/fetch-fixtures.mjs",
+    "spec:report": "vitest run tests/spec/_report.spec.ts"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "@eslint/js": "10.0.1",
+    "@types/node": "26.6.5",
+    "@vitest/coverage-v8": "5.0.5",
+    "commonmark": "0.31.2",
+    "eslint": "10.13.0",
+    "eslint-plugin-import-x": "4.17.1",
+    "expect-type": "1.4.0",
+    "fast-check": "4.10.2",
+    "globals": "17.13.0",
+    "markdown-it": "15.0.3",
+    "marked": "18.1.1",
+    "micromark": "4.0.3",
+    "micromark-extension-gfm": "3.0.0",
+    "prettier": "3.9.10",
+    "publint": "0.3.25",
+    "tinybench": "6.2.2",
+    "tsdown": "0.23.2",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.0",
+    "vitest": "5.0.5"
+  }
+}

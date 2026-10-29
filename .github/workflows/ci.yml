@@ -1,0 +1,50 @@
+# ci: typecheck, lint, format, tests and the zero-dependency checks on every
+# push and pull request. bench runs the benchmark suite and uploads raw
+# results, never gates (shared runners are noisy).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        # engines floor is 20; 24 is what we develop against
+        node: [20, 24]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run fmt:check
+      - run: npm test
+      - run: npm run check:deps
+      - run: npm run check:pack
+
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run bench
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bench-results
+          path: bench/results/
+          retention-days: 30
