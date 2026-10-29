@@ -86,5 +86,8 @@
   "bugs": {
     "url": "https://github.com/dirazcoder/nitpicky-md/issues"
   },
-  "homepage": "https://github.com/dirazcoder/nitpicky-md#readme"
+  "homepage": "https://github.com/dirazcoder/nitpicky-md#readme",
+  "allowScripts": {
+    "unrs-resolver@1.12.2": true
+  }
 }
