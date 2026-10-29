@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write # npm --provenance (sigstore OIDC)
+  id-token: write # Required for npm OIDC provenance token exchange
 
 jobs:
   publish:
@@ -29,5 +29,3 @@ jobs:
       - run: npm run check:pack
       - run: npm run check:publish
       - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
