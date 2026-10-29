@@ -1,13 +1,3 @@
-# release: prepared, never fired (0.1.0 is unreleased).
-#
-# to actually publish, all of these must be true first:
-#   1. the repo lives at github.com/nitpicky-md/nitpicky-md (public -- npm
-#      provenance needs a public origin + OIDC trust configured at
-#      npmjs.com/settings/tokens/automation)
-#   2. an npm access token is stored as the NODE_AUTH_TOKEN secret
-#   3. a tag v0.1.0 exists and CHANGELOG.md has the matching entry
-#
-# the job runs the full gate stack before publishing; a red check blocks it.
 name: release
 
 on:
