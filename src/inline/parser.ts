@@ -45,6 +45,9 @@ interface Delim {
   len: number
   canOpen: boolean
   canClose: boolean
+  /** consumed; skipped by scans. tombstoned instead of spliced out -- see
+   *  processEmphasis. indices must stay stable for bottoms/delimTop. */
+  dead?: boolean
 }
 
 interface Bracket {
@@ -110,6 +113,7 @@ export class InlineRun {
     // in prose those are globs (`*.h`, `*, foo`) far more often than
     // unfinished emphasis
     for (const d of this.delims) {
+      if (d.dead) continue
       if (d.canOpen && d.len > 0 && d.ch !== '~' && d.origLen >= 2) {
         this.nearMisses.push({
           code: 'emphasis-unclosed',
@@ -225,7 +229,8 @@ export class InlineRun {
               const reclaimed = this.tail
               this.removeNode(reclaimed)
               for (let k = this.delims.length - 1; k >= 0; k--) {
-                if (this.delims[k]?.node === reclaimed) this.delims.splice(k, 1)
+                const d = this.delims[k]
+                if (d && d.node === reclaimed) d.dead = true
               }
             }
             const keep =
@@ -509,12 +514,17 @@ export class InlineRun {
     this.pendingStart = this.i
   }
 
-  /** emphasis per the spec appendix, with cmark's openers_bottom guard */
+  /** emphasis per the spec appendix, with cmark's openers_bottom guard.
+   *  removals are tombstones, never splice(): splicing shifts every later
+   *  index (invalidating bottoms and delimTop snapshots) and turns a `*a*`
+   *  storm quadratic -- two O(n) memmoves per pair cost us 2s at 64k delims
+   *  (CI caught it; see tests/unit/adversarial.spec.ts). a tombstone is one
+   *  dead-slot skip, so the pass stays linear. */
   private processEmphasis(bottom: number): void {
     let closerIdx = bottom
     while (closerIdx < this.delims.length) {
       const closer = this.delims[closerIdx]
-      if (!closer || !closer.canClose) {
+      if (!closer || closer.dead || !closer.canClose) {
         closerIdx++
         continue
       }
@@ -525,6 +535,10 @@ export class InlineRun {
       while (openerIdx >= floor) {
         const opener = this.delims[openerIdx]
         if (!opener) break
+        if (opener.dead) {
+          openerIdx--
+          continue
+        }
         if (opener.ch === closer.ch && opener.canOpen) {
           if (closer.ch === '~' && opener.len !== closer.len) {
             // gfm strikethrough only pairs equal-length runs
@@ -554,10 +568,9 @@ export class InlineRun {
           })
         }
         this.bottoms.set(key, Math.max(floor, closerIdx - 1))
-        if (!closer.canOpen) {
-          this.delims.splice(closerIdx, 1)
-          continue
-        }
+        // a closer that can reopen stays live for opener duty; otherwise
+        // it's spent
+        if (!closer.canOpen) closer.dead = true
         closerIdx++
         continue
       }
@@ -618,18 +631,17 @@ export class InlineRun {
         closer.node.span.start = this.posAt(closer.node.contentIdx ?? 0)
         closer.len -= use
       }
-      // drop delimiters strictly between; they're inside the new node
-      const between = closerIdx - matched - 1
-      if (between > 0) this.delims.splice(matched + 1, between)
-      let next = matched + 1
-      if (closer.len === 0) {
-        this.delims.splice(matched + 1, 1)
+      // tombstone delimiters strictly between; they're inside the new node
+      for (let k = matched + 1; k < closerIdx; k++) {
+        const d = this.delims[k]
+        if (d) d.dead = true
       }
-      if (opener.len === 0) {
-        this.delims.splice(matched, 1)
-        next = matched
-      }
-      closerIdx = next
+      if (closer.len === 0) closer.dead = true
+      if (opener.len === 0) opener.dead = true
+      // resume just past the opener; dead slots (opener/closer consumed,
+      // between-run) are skipped by the checks at the top of the loop. a
+      // surviving closer sits at matched+1 and gets re-visited.
+      closerIdx = opener.len === 0 ? matched : matched + 1
     }
   }
 

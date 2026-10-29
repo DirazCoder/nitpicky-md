@@ -16,9 +16,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # engines floor is 20; 24 is what we develop against
-        node: [20, 24]
-    runs-on: ubuntu-latest
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        # engines floor is 20; 26 is current
+        node: [20, 22, 24, 26]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,6 +35,7 @@ jobs:
       - run: npm run check:pack
 
   bench:
+    # perf numbers only make sense on one fixed runner shape
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
