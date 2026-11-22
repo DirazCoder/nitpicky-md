@@ -65,7 +65,7 @@ describe('explain: confusing cases', () => {
   it('8. code span needs equal backtick runs', () => {
     const r = at('``foo`bar``', 3)
     expect(r.path.some((n) => n.type === 'code-span')).toBe(true)
-    expect(r.spec?.section).toBe('§6.10')
+    expect(r.spec?.section).toBe('§6.1')
   })
 
   it('9. unequal backtick runs stay literal', () => {

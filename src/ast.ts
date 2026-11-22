@@ -148,7 +148,7 @@ export interface EscapeNode extends NodeBase {
   readonly type: 'escape'
   readonly value: string
 }
-/** character reference, §2.3. raw is the source form, value is the decoded text */
+/** character reference, §2.5. raw is the source form, value is the decoded text */
 export interface EntityNode extends NodeBase {
   readonly type: 'entity'
   readonly raw: string

@@ -1,6 +1,6 @@
 import { namedEntities } from '../entities.generated'
 
-// character references, spec 0.31.2 §2.3.
+// character references, spec 0.31.2 §2.5.
 
 export interface EntityScan {
   value: string

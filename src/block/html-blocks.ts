@@ -35,6 +35,12 @@ export function htmlBlockStart(
     const end = scanHtmlTag(rest, 0)
     // complete tag, nothing but spaces/tabs after it
     if (end !== -1 && /^[ \t]*$/.test(rest.slice(end))) {
+      // spec 0.31.2 §4.6: the open-tag carve-out (script/style/pre/textarea)
+      // does NOT apply to closing tags -- `</script>` alone on a line is a
+      // type 7 html block. we only reach here for complete tags, so a leading
+      // `</` means scanHtmlTag validated a closing tag.
+      const isClosing = rest.startsWith('</')
+      if (isClosing) return 7
       const name = /^<\/?([A-Za-z][A-Za-z0-9-]*)/.exec(rest)
       const lower = name?.[1]?.toLowerCase() ?? ''
       // spec carves these out of type 7 bcz they're type 1 territory

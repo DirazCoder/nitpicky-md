@@ -1,5 +1,5 @@
 export interface SourceDoc {
-  /** normalized text: \r\n and lone \r become \n, NUL becomes U+FFFD (§2.1) */
+  /** normalized text: \r\n and lone \r become \n, NUL becomes U+FFFD (§2.3) */
   readonly text: string
   readonly lines: readonly string[]
   /** offset of each line's first character, same length as lines */

@@ -31,7 +31,7 @@ export function isUnicodePunctuationCp(cp: number): boolean {
   return inRanges(punctuationRanges, cp)
 }
 
-// spec 0.31.2 §2.3 and the raw HTML grammar lean on ASCII punctuation a lot
+// spec 0.31.2 §2.5 and the raw HTML grammar lean on ASCII punctuation a lot
 export function isAsciiPunctuation(ch: string): boolean {
   const c = ch.charCodeAt(0)
   return (

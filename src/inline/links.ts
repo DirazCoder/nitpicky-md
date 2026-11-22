@@ -1,7 +1,7 @@
 import { isAsciiPunctuation, isUnicodeWhitespaceCp, codePointAt, foldCase } from '../unicode'
 import { decodeEntityAt } from './entities'
 
-// link destination / title / label scanning, spec 0.31.2 §6.6.
+// link destination / title / label scanning, spec 0.31.2 §6.3.
 // shared by the inline parser and the link reference definition finalizer.
 
 export interface Scan {
@@ -124,7 +124,7 @@ export function scanLinkLabel(s: string, i: number): { raw: string; end: number 
     if (ch === '[') return null
     if (ch === ']') {
       const raw = s.slice(i + 1, j)
-      // §6.6: labels can't be empty or longer than 999 chars
+      // §6.3: labels can't be empty or longer than 999 chars
       if (raw.length === 0 || raw.length > 999) return null
       return { raw, end: j + 1 }
     }

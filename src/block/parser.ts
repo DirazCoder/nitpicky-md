@@ -516,21 +516,23 @@ class BlockPhase {
             // can't be definitions (commonmark's setext start does this too)
             this.extractRefDefs(para, this.stack[base - 1])
             if ((para.lines ?? []).length === 0) {
-              // definitions ate the paragraph: no heading; the underline
-              // line just becomes paragraph text (spec example 216)
+              // definitions ate the whole paragraph: the setext start fails
+              // (cmark returns 0 after stripping them) and the other block
+              // starts get this line -- a thematic break `---` wins, and with
+              // no other match the line falls through to paragraph text
+              // (spec examples 216: `===` stays text)
+            } else {
+              para.type = 'heading'
+              para.rule = 'setext-heading'
+              para.variant = 'setext'
+              para.depth = level
+              this.setEnd(para)
+              this.extendAncestors()
+              this.closeTop()
               searching = false
+              lineConsumed = true
               continue
             }
-            para.type = 'heading'
-            para.rule = 'setext-heading'
-            para.variant = 'setext'
-            para.depth = level
-            this.setEnd(para)
-            this.extendAncestors()
-            this.closeTop()
-            searching = false
-            lineConsumed = true
-            continue
           }
         }
 
@@ -898,6 +900,9 @@ class BlockPhase {
         return true
       case 'blockquote': {
         if (this.blank) return false
+        // indented lines are not quote continuations (§5.1: the marker's
+        // indent must be 3 or less, same as at the start)
+        if (this.indent > 3) return false
         if (this.at(this.nextNonspace) !== '>') return false
         // the marker line belongs to the quote's span (tightness via line gaps)
         this.lineHadMarker = true
@@ -915,6 +920,13 @@ class BlockPhase {
       case 'list-item': {
         if (this.blank) {
           if (d.children.length === 0 && d.startLine === this.lineNo - 1) return false
+          // cmark advances to the next non-space (end of line for blanks) so
+          // the container prefix never leaks into leaf content: a blank line
+          // inside an item's fenced code kept its indent spaces as content
+          // before this
+          this.offset = this.nextNonspace
+          this.column = this.nextNonspaceColumn
+          this.partialTab = false
           return true
         }
         if (this.indent < (d.contentCol ?? 0)) return false
@@ -972,6 +984,17 @@ class BlockPhase {
         const lines = d.lines ?? []
         if (d.fenceChar === undefined) {
           while (lines.length > 0 && (lines[lines.length - 1] ?? '').trim() === '') lines.pop()
+          // trailing blanks are not content (trimmed above) and not span:
+          // the end line feeds the loose-list line-gap check, and a stale
+          // blank-line end made the gap invisible -> falsely tight lists.
+          // (doc-line end, not content-length arithmetic: a split tab can
+          // make the content longer in code units than the doc line)
+          if (lines.length > 0) {
+            const lastLineNo = d.lineNos?.[lines.length - 1] ?? this.lineNo
+            const lineStart = this.doc.lineStarts[lastLineNo - 1] ?? 0
+            const docLine = this.doc.lines[lastLineNo - 1] ?? ''
+            d.span.end = positionAt(this.doc, lineStart + docLine.length)
+          }
         } else if (d.fenceClosed !== true) {
           // fenced code that ran to EOF: the fence never closed
           this.nearMisses.push({
@@ -994,6 +1017,17 @@ class BlockPhase {
         d.lines = undefined
         return
       }
+      case 'list-item': {
+        // cmark: an item's extent is its last child's extent. marker-only
+        // lines (a bare `>` or an opening fence) that never produced a child
+        // used to leave the enclosing item's end stale, which faked a line
+        // gap and turned tight lists loose; and blank lines a trailing-code
+        // block later trims used to hide real gaps. taking the end from the
+        // last child is O(1) where extendAncestors-per-open was O(depth).
+        const last = d.children[d.children.length - 1]
+        if (last) d.span.end = last.span.end
+        return
+      }
       case 'list': {
         // loose = a line gap before a following sibling item, or between two
         // children of an item (commonmark: endsWithBlankLine via sourcepos)
@@ -1013,6 +1047,9 @@ class BlockPhase {
           }
         }
         d.tight = !loose
+        // like cmark: the list ends where its last item ends
+        const lastItem = items[items.length - 1]
+        if (lastItem) d.span.end = lastItem.span.end
         return
       }
       case 'document': {

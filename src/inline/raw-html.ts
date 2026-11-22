@@ -1,6 +1,6 @@
 import { isAsciiLetter, isDigit } from '../unicode'
 
-// raw HTML grammar, spec 0.31.2 §6.8. used by the inline parser and by
+// raw HTML grammar, spec 0.31.2 §6.6. used by the inline parser and by
 // html block type 7 (complete tag alone on a line).
 //
 // returns the end offset (exclusive) of the tag starting at `start`
@@ -59,7 +59,7 @@ function scanOpenTag(text: string, start: number): number {
       if (text[j + 1] === '>') return j + 2
       return -1
     }
-    // attributes need separating whitespace (§6.8): <a href='b'title=t> is not a tag
+    // attributes need separating whitespace (§6.6): <a href='b'title=t> is not a tag
     if (j === i) return -1
     // attribute name
     const nch = text[j] ?? ''

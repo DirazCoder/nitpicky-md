@@ -253,9 +253,13 @@ export function main(argv: readonly string[] = process.argv.slice(2)): void {
 main()
 
 async function runCheck(argv: readonly string[]): Promise<void> {
-  const positional = argv.filter((a) => !a.startsWith('-'))
-  const target = positional[1]
+  // positional[1] is the target; the value after --targets is an option
+  // argument, not a positional, whatever order the flags come in
   const targetsIdx = argv.indexOf('--targets')
+  const positional = argv.filter(
+    (a, i) => !a.startsWith('-') && !(targetsIdx !== -1 && i === targetsIdx + 1),
+  )
+  const target = positional[1]
   const targetsArg = targetsIdx !== -1 ? (argv[targetsIdx + 1] ?? '') : 'commonmark,gfm'
   const failOnDiff = argv.includes('--fail-on-diff')
   if (!target) {

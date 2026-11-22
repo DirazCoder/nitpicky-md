@@ -302,11 +302,11 @@ export class InlineRun {
             } else k++
           }
           if (found === -1) {
-            this.tried('code-span', false, 'no-matching-backtick-run', 'CommonMark 0.31.2 §6.10')
+            this.tried('code-span', false, 'no-matching-backtick-run', 'CommonMark 0.31.2 §6.1')
             this.pushText(s.slice(this.i, j))
             this.i = j
           } else {
-            this.tried('code-span', true, undefined, 'CommonMark 0.31.2 §6.10')
+            this.tried('code-span', true, undefined, 'CommonMark 0.31.2 §6.1')
             this.flushPending()
             // line endings become spaces first, then the one-space strip applies
             let inner = s.slice(j, found).replace(/\n/g, ' ')
@@ -332,7 +332,7 @@ export class InlineRun {
             'autolink',
             auto !== null,
             auto ? undefined : 'not-uri-or-email',
-            'CommonMark 0.31.2 §6.6',
+            'CommonMark 0.31.2 §6.5',
           )
           if (auto) {
             this.flushPending()
@@ -350,7 +350,7 @@ export class InlineRun {
             'raw-html',
             tagEnd !== -1,
             tagEnd === -1 ? 'invalid-tag-syntax' : undefined,
-            'CommonMark 0.31.2 §6.8',
+            'CommonMark 0.31.2 §6.6',
           )
           if (tagEnd === -1 && this.i + 1 < s.length && /[A-Za-z!/]/.test(s[this.i + 1] ?? '')) {
             // typescript generics in prose (`<WithFaceDetection<{}>>`) look
@@ -667,12 +667,12 @@ export class InlineRun {
     if (s[this.i + 1] === '(') {
       const parsed = this.scanInlineLinkTail(this.i + 2)
       if (parsed) {
-        this.tried('link', true, `variant-inline`, 'CommonMark 0.31.2 §6.6')
+        this.tried('link', true, `variant-inline`, 'CommonMark 0.31.2 §6.3')
         this.makeLinkOrImage(b, parsed.destination, parsed.title, 'inline', undefined, parsed.end)
         return
       }
       this.nearMisses.push({ code: 'link-inline-malformed', offset: this.posAt(closeStart).offset })
-      this.tried('link', false, 'no-destination-or-title', 'CommonMark 0.31.2 §6.6')
+      this.tried('link', false, 'no-destination-or-title', 'CommonMark 0.31.2 §6.3')
     }
     // reference links. a full `[label]` that scans but doesn't resolve kills
     // the link outright -- no shortcut fallback (commonmark parseCloseBracket)
@@ -682,7 +682,7 @@ export class InlineRun {
         const norm = normalizeLabel(lbl.raw)
         const def = norm === '' ? undefined : this.refs.get(norm)
         if (def) {
-          this.tried('link', true, 'variant-reference', 'CommonMark 0.31.2 §6.6')
+          this.tried('link', true, 'variant-reference', 'CommonMark 0.31.2 §6.3')
           this.makeLinkOrImage(b, def.destination, def.title, 'reference', lbl.raw, lbl.end)
           return
         }
@@ -696,7 +696,7 @@ export class InlineRun {
           'link',
           false,
           norm === '' ? 'empty-label' : 'reference-undefined',
-          'CommonMark 0.31.2 §6.6',
+          'CommonMark 0.31.2 §6.3',
         )
         this.brackets.pop()
         this.pushText(']')
@@ -720,7 +720,7 @@ export class InlineRun {
       const norm = normalizeLabel(raw)
       const def = norm === '' ? undefined : this.refs.get(norm)
       if (def) {
-        this.tried(b.image ? 'image' : 'link', true, 'variant-shortcut', 'CommonMark 0.31.2 §6.6')
+        this.tried(b.image ? 'image' : 'link', true, 'variant-shortcut', 'CommonMark 0.31.2 §6.3')
         this.makeLinkOrImage(b, def.destination, def.title, 'shortcut', raw, closeStart + 1)
         return
       }
@@ -739,7 +739,7 @@ export class InlineRun {
         b.image ? 'image' : 'link',
         false,
         norm === '' ? 'empty-label' : 'reference-undefined',
-        'CommonMark 0.31.2 §6.6',
+        'CommonMark 0.31.2 §6.3',
       )
     }
     // nothing matched: the opener is dead and `]` is text
@@ -791,9 +791,15 @@ export class InlineRun {
     label: string | undefined,
     endIdx: number,
   ): void {
-    // emphasis inside the bracket text resolves first (§6.6)
+    // emphasis inside the bracket text resolves first (§6.3)
     this.processEmphasis(b.delimTop)
     this.delims.length = b.delimTop
+    // the truncated entries' recorded openers_bottom floors referenced list
+    // indices that no longer exist; leaving them blocked opener/closer pairs
+    // that straddle the link (`*foo [bar*](/url)*` lost its emphasis).
+    // cmark keeps openers_bottom local to one process_emphasis call, so the
+    // equivalent here is clearing it whenever the stack is cut back.
+    this.bottoms.clear()
     const kids: INode[] = []
     let n = b.node.next ?? null
     while (n) {
@@ -824,7 +830,7 @@ export class InlineRun {
     this.brackets.pop()
     this.i = endIdx
     this.pendingStart = this.i
-    // links may not contain links (§6.6); record it bcz "why is my outer
+    // links may not contain links (§6.3); record it bcz "why is my outer
     // bracket literal" is a top-tier confusing case
     if (!isImage) {
       for (const br of this.brackets) {
@@ -837,7 +843,7 @@ export class InlineRun {
               verdict: 'rejected',
               reason: 'link-inside-link',
               start: br.node.span.start.offset,
-              spec: 'CommonMark 0.31.2 §6.6',
+              spec: 'CommonMark 0.31.2 §6.3',
             })
           }
         }
@@ -891,7 +897,7 @@ function rawTextBetween(
 }
 
 /** whitespace inside inline links: ascii ws only, never a blank line. nbsp
- * is NOT whitespace here (spec 0.31.2 §6.6, example 507) */
+ * is NOT whitespace here (spec 0.31.2 §6.3, example 507) */
 function scanLinkWs(s: string, i: number): { end: number; blank: boolean } {
   let j = i
   let newlines = 0
@@ -907,7 +913,7 @@ function scanLinkWs(s: string, i: number): { end: number; blank: boolean } {
   return { end: j, blank: false }
 }
 
-// classic `<scheme:...>` / `<email>` autolinks, spec 0.31.2 §6.6
+// classic `<scheme:...>` / `<email>` autolinks, spec 0.31.2 §6.5
 function scanClassicAutolink(
   s: string,
   i: number,

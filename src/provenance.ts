@@ -48,11 +48,15 @@ export const RULE_SPECS: Readonly<Record<RuleId, RuleSpec>> = {
   text: { section: '§6', title: 'Inlines', url: `${CM}#inlines` },
   escape: { section: '§2.4', title: 'Backslash escapes', url: `${CM}#backslash-escapes` },
   entity: {
-    section: '§2.3',
+    // 0.31.2 moved entity references from §6 to Preliminaries as §2.5
+    section: '§2.5',
     title: 'Entity and numeric character references',
     url: `${CM}#entity-and-numeric-character-references`,
   },
-  'code-span': { section: '§6.10', title: 'Code spans', url: `${CM}#code-spans` },
+  // 0.31.2 also renumbered the Inlines section (code spans are §6.1, links
+  // §6.3, images §6.4, autolinks §6.5, raw HTML §6.6, hard/soft breaks
+  // §6.7/§6.8) -- these were stale 0.30-era numbers before
+  'code-span': { section: '§6.1', title: 'Code spans', url: `${CM}#code-spans` },
   emphasis: {
     section: '§6.2',
     title: 'Emphasis and strong emphasis',
@@ -68,12 +72,12 @@ export const RULE_SPECS: Readonly<Record<RuleId, RuleSpec>> = {
     title: 'Strikethrough (extension)',
     url: `${GFM}#strikethrough-extension-`,
   },
-  link: { section: '§6.6', title: 'Links', url: `${CM}#links` },
-  image: { section: '§6.7', title: 'Images', url: `${CM}#images` },
-  autolink: { section: '§6.8', title: 'Autolinks', url: `${CM}#autolinks` },
-  'raw-html': { section: '§6.9', title: 'Raw HTML', url: `${CM}#raw-html` },
-  'soft-break': { section: '§6.11', title: 'Soft line breaks', url: `${CM}#soft-line-breaks` },
-  'hard-break': { section: '§6.9', title: 'Hard line breaks', url: `${CM}#hard-line-breaks` },
+  link: { section: '§6.3', title: 'Links', url: `${CM}#links` },
+  image: { section: '§6.4', title: 'Images', url: `${CM}#images` },
+  autolink: { section: '§6.5', title: 'Autolinks', url: `${CM}#autolinks` },
+  'raw-html': { section: '§6.6', title: 'Raw HTML', url: `${CM}#raw-html` },
+  'soft-break': { section: '§6.8', title: 'Soft line breaks', url: `${CM}#soft-line-breaks` },
+  'hard-break': { section: '§6.7', title: 'Hard line breaks', url: `${CM}#hard-line-breaks` },
 }
 
 /** human phrases for the common rejection reasons */

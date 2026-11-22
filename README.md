@@ -48,7 +48,7 @@ $ nitpicky-md explain doc.md:3:14
   plain text; from §6 Inlines; not link: the (...) part did not parse as destination + title
   path: document > paragraph > text
   rule: text (§6, https://spec.commonmark.org/0.31.2/#inlines)
-  tried link: rejected -- the (...) part did not parse as destination + title (CommonMark 0.31.2 §6.6)
+  tried link: rejected -- the (...) part did not parse as destination + title (CommonMark 0.31.2 §6.3)
   tried atx-heading: rejected -- no # characters start the line (CommonMark 0.31.2 §4.2)
 ```
 
